@@ -1,0 +1,7 @@
+pandas
+numpy
+geopandas
+shapely
+pyarrow
+plotly
+streamlit
