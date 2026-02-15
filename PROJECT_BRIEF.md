@@ -55,11 +55,11 @@
 
 ## Data sources (fill in)
 
-- 311: …
-- MTA delays: …
-- Road speeds / segments: …
-- Utility outages: …
-- FEMA flood hazard zones: …
+- 311: [https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2020-to-Present/erm2-nwe9/about_data](url)
+- MTA delays: [https://data.ny.gov/Transportation/MTA-Subway-Delay-Causing-Incidents-Beginning-2020/g937-7k7c/about_data](url)
+- Road speeds / segments: [https://data.cityofnewyork.us/Transportation/DOT-Traffic-Speeds-NBE/i4gi-tjb9/about_data](url)
+- Utility outages: [https://data.cityofnewyork.us/Social-Services/power-outage-complaints/br6j-yp22/about_data](url)
+- FEMA flood hazard zones: [https://www.fema.gov/flood-maps/national-flood-hazard-layer?utm_source=chatgpt.com](url) , [https://opdgig.dos.ny.gov/datasets/fema-flood-hazard-zones/about?utm_source=chatgpt.com](url)
 
 
 ## Repo structure
