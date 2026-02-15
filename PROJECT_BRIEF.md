@@ -30,7 +30,7 @@
 |---|---|---:|---|
 | `svc_311_density` | 311 requests per km² | rolling | dynamic |
 | `mob_mta_delay_density` | MTA delay incidents per km² | rolling | dynamic |
-| `traf_congestion_proxy` | Share of road segments with mean speed < **X mph** | rolling | dynamic |
+| `traf_congestion_proxy` | Share of road segments with mean speed < 10 mph | rolling | dynamic |
 | `util_outage_density` | Outage complaints per km² | rolling | dynamic |
 | `clim_flood_share` | % of NTA area in FEMA flood hazard zone | — | static |
 
