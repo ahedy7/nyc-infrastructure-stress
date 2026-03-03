@@ -5,3 +5,4 @@ shapely
 pyarrow
 plotly
 streamlit
+dash>=2.14.0
