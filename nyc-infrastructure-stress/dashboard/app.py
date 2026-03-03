@@ -44,8 +44,8 @@ BORDER = "#30363d"
 # Color scale for stress (dark-mode friendly)
 COLOR_SCALE = ["#0d47a1", "#1565c0", "#1976d2", "#42a5f5", "#64b5f6", "#ffb74d", "#ff9800", "#f57c00", "#e65100"]
 
-# Map style: "carto-darkmatter" (dark) or "open-street-map" (more reliable at high zoom)
-MAPBOX_STYLE = "open-street-map"
+# Map style: uses MapLibre (choropleth_map) - more stable zoom than deprecated choropleth_mapbox
+MAP_STYLE = "carto-darkmatter"
 
 
 def _norm(s):
@@ -366,14 +366,14 @@ FEATUREIDKEY = f"properties.{featureidkey}"
 
 @callback(Output("choropleth-map", "figure"), Input("selected-nta", "data"))
 def update_map(selected_nta):
-    fig = px.choropleth_mapbox(
+    fig = px.choropleth_map(
         df_map,
         geojson=geojson,
         locations="_choropleth_loc",
         featureidkey=FEATUREIDKEY,
         color="stress_score",
         color_continuous_scale=COLOR_SCALE,
-        mapbox_style=MAPBOX_STYLE,
+        map_style=MAP_STYLE,
         center={"lat": 40.7, "lon": -73.95},
         zoom=9,
         opacity=0.75,
