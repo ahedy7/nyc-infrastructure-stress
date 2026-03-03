@@ -221,7 +221,7 @@ app.layout = html.Div(
                             },
                         ),
                         html.Div(
-                            dcc.Graph(id="choropleth-map", config={"displayModeBar": True, "responsive": True}),
+                            dcc.Graph(id="choropleth-map", config={"displayModeBar": False, "responsive": True}),
                             style={
                                 "width": "100%",
                                 "overflow": "hidden",
