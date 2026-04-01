@@ -1,13 +1,15 @@
 """
 Compute the infrastructure stress index from baseline features.
 
-Loads baseline_features.csv, z-scores heat/nonheat densities across NTAs,
-computes service_strain = mean(z_heat, z_nonheat), stress_score = service_strain.
+Loads baseline_features.csv, z-scores each index feature across NTAs, and sets
+stress_score to the mean of those z-scores (equal weights).
 Outputs data_processed/baseline_index.csv.
 """
 
 import pandas as pd
 from pathlib import Path
+
+from config import INDEX_FEATURES
 
 
 def get_project_root() -> Path:
@@ -23,23 +25,26 @@ def main():
 
     df = pd.read_csv(in_path)
 
-    # Z-score heat_per_km2 and nonheat_per_km2 across NTAs
-    df["z_heat"] = (df["heat_per_km2"] - df["heat_per_km2"].mean()) / df["heat_per_km2"].std()
-    df["z_nonheat"] = (df["nonheat_per_km2"] - df["nonheat_per_km2"].mean()) / df["nonheat_per_km2"].std()
+    missing = [f for f in INDEX_FEATURES if f not in df.columns]
+    if missing:
+        raise KeyError(
+            "baseline_features.csv is missing index feature column(s): "
+            + ", ".join(missing)
+        )
 
-    # Handle NaN from zero std (e.g. constant column)
-    df["z_heat"] = df["z_heat"].fillna(0)
-    df["z_nonheat"] = df["z_nonheat"].fillna(0)
+    z_cols: list[str] = []
+    for feat in INDEX_FEATURES:
+        col = pd.to_numeric(df[feat], errors="coerce")
+        zname = f"z_{feat}"
+        z = (col - col.mean()) / col.std()
+        df[zname] = z.fillna(0)
+        z_cols.append(zname)
 
-    # service_strain = mean(z_heat, z_nonheat)
-    df["service_strain"] = (df["z_heat"] + df["z_nonheat"]) / 2
-
-    # For now: stress_score = service_strain
-    df["stress_score"] = df["service_strain"]
+    df["stress_score"] = df[z_cols].mean(axis=1)
 
     out_path = out_dir / "baseline_index.csv"
     df.to_csv(out_path, index=False)
-    print(f"Saved {out_path} ({len(df)} NTAs)")
+    print(f"Saved {out_path} ({len(df)} NTAs); index = mean of {len(INDEX_FEATURES)} z-scores")
 
 
 if __name__ == "__main__":
