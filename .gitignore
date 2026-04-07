@@ -23,3 +23,6 @@ nyc-infrastructure-stress/.venv/
 nyc-infrastructure-stress/dashboard/__pycache__/
 nyc-infrastructure-stress/src/__pycache__/
 
+# Large/raw datasets (keep lightweight processed outputs under data_processed/)
+nyc-infrastructure-stress/data_raw/
+
