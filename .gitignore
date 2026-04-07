@@ -1,0 +1,25 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Project-local venvs
+nyc-infrastructure-stress/.venv/
+
+# ETL scratch / backups
+*.localbak
+
+# Dash / general caches
+nyc-infrastructure-stress/dashboard/__pycache__/
+nyc-infrastructure-stress/src/__pycache__/
+
