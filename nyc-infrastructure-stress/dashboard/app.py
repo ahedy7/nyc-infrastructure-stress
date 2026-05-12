@@ -67,6 +67,7 @@ def load_merged_geodata() -> tuple[gpd.GeoDataFrame, dict]:
 GDF, GEOJSON = load_merged_geodata()
 
 app = Dash(__name__)
+server = app.server
 app.title = "NYC Infrastructure Stress Index"
 
 app.index_string = """<!DOCTYPE html>
