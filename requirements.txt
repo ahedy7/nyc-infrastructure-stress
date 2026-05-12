@@ -1,0 +1,10 @@
+pandas
+numpy
+requests
+geopandas
+shapely
+pyarrow
+plotly
+streamlit
+dash>=2.14.0
+gunicorn
