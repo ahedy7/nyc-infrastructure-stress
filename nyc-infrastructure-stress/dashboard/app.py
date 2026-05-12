@@ -1,161 +1,125 @@
-"""
-NYC Infrastructure Stress Dashboard — Plotly Dash MVP
+"""NYC Infrastructure Stress Index — Plotly Dash dashboard."""
 
-How to run (from nyc-infrastructure-stress/):
-  python dashboard/app.py
-  # or: ./run_dashboard.sh  (kills any existing server on 8050 first)
+from __future__ import annotations
 
-Then open: http://127.0.0.1:8050/
-
-Required files (relative to project root = parent of dashboard/):
-  - data_processed/baseline_index.csv
-  - arcgis_exports/2020_Neighborhood_Tabulation_Areas_(NTAs)_20260303.geojson
-"""
-
-from pathlib import Path
 import json
-import os
-import socket
+from pathlib import Path
+from typing import Optional
+
+import geopandas as gpd
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-from dash import Dash, dcc, html, dash_table, callback, Input, Output, State
+from dash import Dash, Input, Output, callback, dcc, html
 
-# -----------------------------------------------------------------------------
-# Paths
-# -----------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-BASELINE_PATH = PROJECT_ROOT / "data_processed" / "baseline_index.csv"
-GEOJSON_PATH = PROJECT_ROOT / "arcgis_exports" / "2020_Neighborhood_Tabulation_Areas_(NTAs)_20260303.geojson"
+STRESS_PATH = PROJECT_ROOT / "data_processed" / "nta_stress_index.csv"
+SHP_PATH = PROJECT_ROOT / "data_raw" / "nta_2020" / "geo_export.shp"
+GITHUB_URL = "https://github.com/ahedy7/nyc-infrastructure-stress"
 
-# -----------------------------------------------------------------------------
-# Dark theme — MIT Sensible City Lab aesthetic
-# -----------------------------------------------------------------------------
-BG_DARK = "#0d1117"
-BG_CARD = "#161b22"
-BG_HOVER = "#21262d"
-TEXT_PRIMARY = "#e6edf3"
-TEXT_MUTED = "#8b949e"
-ACCENT_CYAN = "#58a6ff"
-ACCENT_TEAL = "#39d353"
-ACCENT_ORANGE = "#d29922"
-BORDER = "#30363d"
+BG_DARK = "#1a1a2e"
+BG_CARD = "#23233a"
+TEXT_PRIMARY = "#f5f5f5"
+TEXT_MUTED = "#b8b8c8"
+BORDER = "#3a3a52"
+ACCENT_RED = "#e74c3c"
+ACCENT_ORANGE = "#f39c12"
 
-# Color scale for stress (dark-mode friendly)
-COLOR_SCALE = ["#0d47a1", "#1565c0", "#1976d2", "#42a5f5", "#64b5f6", "#ffb74d", "#ff9800", "#f57c00", "#e65100"]
-
-# Map style: uses MapLibre (choropleth_map) - more stable zoom than deprecated choropleth_mapbox
-MAP_STYLE = "carto-darkmatter"
-
-
-def _norm(s):
-    """Normalize string for join: strip whitespace, uppercase."""
-    if pd.isna(s):
-        return ""
-    return str(s).strip().upper()
-
-
-def detect_nta_property(geojson):
-    """Inspect GeoJSON features and detect which property holds the NTA code."""
-    candidates = ["nta2020", "NTACode", "ntacode", "NTA2020", "nta_code", "NTA_CODE"]
-    if not geojson.get("features"):
-        return None, []
-    props = geojson["features"][0].get("properties", {})
-    keys = list(props.keys())
-    for c in candidates:
-        if c in props:
-            return c, keys
-    for k in keys:
-        if "nta" in k.lower() or "code" in k.lower():
-            return k, keys
-    return None, keys
-
-
-def load_and_join():
-    """Load baseline CSV and GeoJSON, perform robust join."""
-    df = pd.read_csv(BASELINE_PATH)
-    df["nta2020_norm"] = df["nta2020"].apply(_norm)
-
-    if not GEOJSON_PATH.exists():
-        raise FileNotFoundError(
-            f"GeoJSON not found at {GEOJSON_PATH}. "
-            "Ensure arcgis_exports/2020_Neighborhood_Tabulation_Areas_(NTAs)_20260303.geojson exists."
-        )
-
-    with open(GEOJSON_PATH, "r") as f:
-        geojson = json.load(f)
-
-    n_features = len(geojson.get("features", []))
-    featureidkey, all_keys = detect_nta_property(geojson)
-    if not featureidkey:
-        raise ValueError(
-            f"Could not detect NTA code property. Feature keys: {all_keys}. "
-            "Expected one of: nta2020, NTACode, ntacode, NTA2020"
-        )
-
-    norm_to_geo = {}
-    for feat in geojson["features"]:
-        val = feat.get("properties", {}).get(featureidkey)
-        if val is not None:
-            norm_to_geo[_norm(val)] = val
-
-    df["_join_key"] = df["nta2020_norm"]
-    df["_choropleth_loc"] = df["_join_key"].map(norm_to_geo)
-    matched = df["_choropleth_loc"].notna()
-    n_matched = matched.sum()
-    n_total = len(df)
-    join_pct = 100 * n_matched / n_total if n_total else 0
-
-    if join_pct < 95:
-        print(
-            "\n⚠️  WARNING: Join rate < 95%\n"
-            f"  featureidkey: {featureidkey}\n"
-            f"  Example GeoJSON values: {list(norm_to_geo.values())[:5]}\n"
-            f"  Example baseline nta2020: {df['nta2020'].head().tolist()}\n"
-            f"  Matched: {n_matched}/{n_total} ({join_pct:.1f}%)\n"
-        )
-
-    for col in ["stress_score", "z_heat", "z_nonheat"]:
-        if col in df.columns:
-            df[col] = df[col].fillna(0)
-
-    return df, geojson, featureidkey, join_pct, n_total, n_features
-
-
-# -----------------------------------------------------------------------------
-# Load data
-# -----------------------------------------------------------------------------
-df, geojson, featureidkey, join_pct, n_baseline, n_geojson = load_and_join()
-
-df_sorted = df.sort_values("stress_score", ascending=False).reset_index(drop=True)
-df_sorted["rank"] = range(1, len(df_sorted) + 1)
-df_map = df_sorted[df_sorted["_choropleth_loc"].notna()].copy()
-loc_to_nta = dict(zip(df_map["_choropleth_loc"], df_map["nta2020"]))
-default_nta = df_sorted.iloc[0]["nta2020"]
-default_name = df_sorted.iloc[0].get("ntaname", df_sorted.iloc[0].get("NTAName", default_nta))
-name_col = "NTAName" if "NTAName" in df_sorted.columns else "ntaname"
-
-print(
-    f"\n📊 Dashboard startup:\n"
-    f"  baseline_index: {n_baseline} rows\n"
-    f"  GeoJSON features: {n_geojson}\n"
-    f"  Join match: {join_pct:.1f}%\n"
+BASELINE_CONTEXT = (
+    "Baseline stress measures chronic infrastructure strain across four dimensions: "
+    "311 complaint density, MTA delay density, utility outage density, and flood zone "
+    "exposure. Scores are z-score standardized and equally weighted. Higher scores "
+    "indicate neighborhoods where multiple infrastructure systems are under persistent "
+    "pressure."
 )
 
-# -----------------------------------------------------------------------------
-# App
-# -----------------------------------------------------------------------------
-app = Dash(__name__, suppress_callback_exceptions=True)
+EVENT_CONTEXT = (
+    "Event delta measures how much more stressed a neighborhood becomes during "
+    "high-stress weeks relative to its own baseline. Positive delta = more brittle "
+    "during events than baseline suggests. Negative delta = more resilient than "
+    "expected. Computed via Monte Carlo simulation over annual aggregates."
+)
 
-# IBM Plex Sans for MIT Sensible City Lab aesthetic
+GRAPH_CONFIG = {"displayModeBar": False, "responsive": True}
+
+
+def load_merged_geodata() -> tuple[gpd.GeoDataFrame, dict]:
+    stress = pd.read_csv(STRESS_PATH)
+    if not SHP_PATH.exists():
+        raise FileNotFoundError(f"NTA shapefile not found at {SHP_PATH}")
+
+    boundaries = gpd.read_file(SHP_PATH)
+    if "NTACode" not in boundaries.columns:
+        for candidate in ("nta2020", "NTA2020", "ntacode"):
+            if candidate in boundaries.columns:
+                boundaries = boundaries.rename(columns={candidate: "NTACode"})
+                break
+
+    boundaries = boundaries[["NTACode", "geometry"]].to_crs("EPSG:4326")
+    merged = boundaries.merge(stress, on="NTACode", how="inner")
+    if merged.empty:
+        raise ValueError("No NTA polygons matched stress index rows on NTACode.")
+
+    geojson = json.loads(merged.to_json())
+    return merged, geojson
+
+
+GDF, GEOJSON = load_merged_geodata()
+
+app = Dash(__name__)
+app.title = "NYC Infrastructure Stress Index"
+
 app.index_string = """<!DOCTYPE html>
 <html>
     <head>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
         {%metas%}
-        <title>NYC Infrastructure Stress</title>
+        <title>NYC Infrastructure Stress Index</title>
         {%favicon%}
         {%css%}
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                background: #1a1a2e;
+            }
+            .toggle-buttons .dash-radio-item {
+                display: inline-flex;
+                margin: 0;
+            }
+            .toggle-buttons label {
+                cursor: pointer;
+                margin: 0;
+                padding: 0.55rem 1rem;
+                border: 1px solid #3a3a52;
+                background: #23233a;
+                color: #b8b8c8;
+                font-size: 0.9rem;
+                font-weight: 500;
+            }
+            .toggle-buttons label:first-of-type {
+                border-radius: 8px 0 0 8px;
+            }
+            .toggle-buttons label:last-of-type {
+                border-radius: 0 8px 8px 0;
+            }
+            .toggle-buttons input {
+                display: none;
+            }
+            .toggle-buttons input:checked + label,
+            .toggle-buttons label:has(input:checked) {
+                background: #f5f5f5;
+                color: #1a1a2e;
+                border-color: #f5f5f5;
+            }
+            @media (max-width: 960px) {
+                .main-columns {
+                    flex-direction: column !important;
+                }
+                .map-column, .side-column {
+                    flex: 1 1 100% !important;
+                    max-width: 100% !important;
+                }
+            }
+        </style>
     </head>
     <body>
         {%app_entry%}
@@ -169,339 +133,244 @@ app.index_string = """<!DOCTYPE html>
 
 app.layout = html.Div(
     [
-        dcc.Store(id="selected-nta", data=default_nta),
-        # Header
         html.Header(
             [
                 html.H1(
                     "NYC Infrastructure Stress Index",
                     style={
-                        "fontFamily": "'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif",
+                        "margin": "0 0 0.35rem 0",
+                        "fontSize": "clamp(1.6rem, 3vw, 2.2rem)",
                         "fontWeight": 600,
-                        "fontSize": "1.75rem",
-                        "letterSpacing": "-0.02em",
-                        "marginBottom": "0.25rem",
                         "color": TEXT_PRIMARY,
                     },
                 ),
                 html.P(
-                    "Identify neighborhoods with the highest infrastructure stress. "
-                    "Explore heat vs. non-heat service drivers across NYC.",
+                    (
+                        "Neighborhood-level infrastructure strain across four dimensions: "
+                        "service delivery, mobility, utilities, and climate vulnerability"
+                    ),
                     style={
-                        "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
+                        "margin": "0 0 16px 0",
+                        "maxWidth": "760px",
                         "color": TEXT_MUTED,
-                        "fontSize": "0.95rem",
-                        "marginTop": 0,
-                        "maxWidth": "560px",
+                        "fontSize": "1rem",
+                        "lineHeight": 1.5,
                     },
+                ),
+                dcc.RadioItems(
+                    id="metric-toggle",
+                    options=[
+                        {"label": "Baseline Stress", "value": "baseline"},
+                        {"label": "Event Week Delta", "value": "event"},
+                    ],
+                    value="baseline",
+                    inline=True,
+                    className="toggle-buttons",
+                    inputStyle={"marginRight": "0"},
+                    labelStyle={"marginRight": "0"},
                 ),
             ],
             style={
-                "marginBottom": "1.5rem",
-                "paddingBottom": "1.25rem",
+                "padding": "1.75rem 1.5rem 1.25rem",
                 "borderBottom": f"1px solid {BORDER}",
+                "overflow": "hidden",
             },
         ),
-        # Main content: map left, table right
         html.Div(
             [
-                # Left: Map
                 html.Div(
                     [
-                        html.Div(
-                            "Stress by Neighborhood",
-                            style={
-                                "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-                                "fontSize": "0.7rem",
-                                "fontWeight": 600,
-                                "color": TEXT_MUTED,
-                                "textTransform": "uppercase",
-                                "letterSpacing": "0.08em",
-                                "marginBottom": "0.5rem",
-                            },
-                        ),
-                        html.Div(
-                            dcc.Graph(id="choropleth-map", config={"displayModeBar": False, "responsive": True}),
-                            style={
-                                "width": "100%",
-                                "overflow": "hidden",
-                                "borderRadius": "8px",
-                                "border": f"1px solid {BORDER}",
-                                "backgroundColor": BG_CARD,
-                            },
+                        dcc.Graph(
+                            id="choropleth-map",
+                            config=GRAPH_CONFIG,
+                            style={"width": "100%", "height": "100%"},
                         ),
                     ],
-                    style={"flex": "1 1 55%", "minWidth": 320, "marginRight": "1.5rem"},
+                    className="map-column",
+                    style={
+                        "flex": "1 1 60%",
+                        "minWidth": "320px",
+                        "minHeight": "520px",
+                        "display": "flex",
+                        "flexDirection": "column",
+                    },
                 ),
-                # Right: Table
                 html.Div(
                     [
-                        html.Div(
-                            "NTA Ranking",
-                            style={
-                                "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-                                "fontSize": "0.7rem",
-                                "fontWeight": 600,
-                                "color": TEXT_MUTED,
-                                "textTransform": "uppercase",
-                                "letterSpacing": "0.08em",
-                                "marginBottom": "0.5rem",
-                            },
+                        dcc.Graph(
+                            id="top-nta-bar",
+                            config=GRAPH_CONFIG,
+                            style={"width": "100%", "height": "100%"},
                         ),
-                        dash_table.DataTable(
-                            id="ranking-table",
-                            columns=[
-                                {"name": "Rank", "id": "rank", "type": "numeric"},
-                                {"name": "Neighborhood", "id": name_col, "type": "text"},
-                                {"name": "Stress", "id": "stress_score", "type": "numeric"},
-                                {"name": "z_heat", "id": "z_heat", "type": "numeric"},
-                                {"name": "z_nonheat", "id": "z_nonheat", "type": "numeric"},
-                            ],
-                            data=df_sorted[["rank", name_col, "stress_score", "z_heat", "z_nonheat"]]
-                            .assign(
-                                stress_score=df_sorted["stress_score"].round(2),
-                                z_heat=df_sorted["z_heat"].round(2),
-                                z_nonheat=df_sorted["z_nonheat"].round(2),
-                            )
-                            .to_dict("records"),
-                            row_selectable="single",
-                            selected_rows=[0],
-                            sort_action="native",
-                            sort_mode="single",
-                            style_table={
-                                "overflowX": "auto",
-                                "width": "100%",
-                                "minWidth": "100%",
+                        html.Div(
+                            id="metric-context",
+                            style={
+                                "marginTop": "1rem",
+                                "padding": "1rem 1.1rem",
+                                "borderRadius": "10px",
                                 "border": f"1px solid {BORDER}",
-                                "borderRadius": "8px",
                                 "backgroundColor": BG_CARD,
+                                "color": TEXT_MUTED,
+                                "fontSize": "0.95rem",
+                                "lineHeight": 1.55,
                             },
-                            style_cell={
-                                "textAlign": "left",
-                                "padding": "10px 12px",
-                                "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-                                "fontSize": "0.8rem",
-                                "color": TEXT_PRIMARY,
-                                "backgroundColor": BG_CARD,
-                                "border": f"1px solid {BORDER}",
-                            },
-                            style_header={
-                                "fontWeight": 600,
-                                "backgroundColor": BG_HOVER,
-                                "color": TEXT_PRIMARY,
-                                "border": f"1px solid {BORDER}",
-                            },
-                            style_data_conditional=[
-                                {"if": {"state": "selected"}, "backgroundColor": f"{ACCENT_CYAN}22"},
-                                {"if": {"row_index": "odd"}, "backgroundColor": BG_HOVER},
-                            ],
-                            style_cell_conditional=[
-                                {"if": {"column_id": "rank"}, "width": "52px"},
-                                {"if": {"column_id": name_col}, "minWidth": "140px", "maxWidth": "200px"},
-                                {"if": {"column_id": "stress_score"}, "width": "72px"},
-                                {"if": {"column_id": "z_heat"}, "width": "72px"},
-                                {"if": {"column_id": "z_nonheat"}, "width": "80px"},
-                            ],
                         ),
                     ],
-                    style={"flex": "1 1 40%", "minWidth": 280},
+                    className="side-column",
+                    style={
+                        "flex": "1 1 40%",
+                        "minWidth": "280px",
+                        "minHeight": "520px",
+                        "display": "flex",
+                        "flexDirection": "column",
+                    },
                 ),
             ],
-            style={"display": "flex", "flexWrap": "wrap", "gap": "1rem", "alignItems": "flex-start", "marginBottom": "1.5rem"},
+            className="main-columns",
+            style={
+                "display": "flex",
+                "flexWrap": "wrap",
+                "gap": "1.25rem",
+                "padding": "1.25rem 1.5rem",
+                "alignItems": "stretch",
+            },
         ),
-        # Bottom: Selected NTA + Drivers chart
-        html.Div(
+        html.Footer(
             [
-                html.Div(
-                    id="selected-nta-label",
-                    children=f"Selected: {default_name}",
-                    style={
-                        "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-                        "fontWeight": 600,
-                        "fontSize": "1rem",
-                        "marginBottom": "0.5rem",
-                        "color": ACCENT_CYAN,
-                    },
+                html.P(
+                    "Data sources: NYC Open Data 311, MTA, Power Outage Complaints, FEMA Flood Hazard Zones",
+                    style={"margin": "0 0 0.35rem 0", "color": TEXT_MUTED, "fontSize": "0.9rem"},
                 ),
-                html.Div(
-                    "Drivers (z_heat vs z_nonheat)",
-                    style={
-                        "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-                        "fontSize": "0.7rem",
-                        "fontWeight": 600,
-                        "color": TEXT_MUTED,
-                        "textTransform": "uppercase",
-                        "letterSpacing": "0.08em",
-                        "marginBottom": "0.5rem",
-                    },
-                ),
-                html.Div(
-                    dcc.Graph(id="drivers-chart", config={"displayModeBar": False, "responsive": True}),
-                    style={
-                        "borderRadius": "8px",
-                        "border": f"1px solid {BORDER}",
-                        "backgroundColor": BG_CARD,
-                        "maxWidth": "480px",
-                    },
+                html.P(
+                    [
+                        "Built by Arvin Hedy | McGill University | 2026 | ",
+                        html.A(
+                            "GitHub",
+                            href=GITHUB_URL,
+                            target="_blank",
+                            rel="noopener noreferrer",
+                            style={"color": TEXT_PRIMARY},
+                        ),
+                    ],
+                    style={"margin": 0, "color": TEXT_MUTED, "fontSize": "0.9rem"},
                 ),
             ],
-            style={"marginTop": "0.5rem"},
+            style={
+                "padding": "1.25rem 1.5rem 1.75rem",
+                "borderTop": f"1px solid {BORDER}",
+            },
         ),
     ],
     style={
-        "fontFamily": "'IBM Plex Sans', system-ui, sans-serif",
-        "maxWidth": "1280px",
-        "margin": "0 auto",
-        "padding": "2rem 1.5rem",
         "minHeight": "100vh",
+        "fontFamily": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         "backgroundColor": BG_DARK,
+        "color": TEXT_PRIMARY,
     },
 )
 
-# -----------------------------------------------------------------------------
-# Callbacks
-# -----------------------------------------------------------------------------
-FEATUREIDKEY = f"properties.{featureidkey}"
 
-
-@callback(Output("choropleth-map", "figure"), Input("selected-nta", "data"))
-def update_map(selected_nta):
-    fig = px.choropleth_map(
-        df_map,
-        geojson=geojson,
-        locations="_choropleth_loc",
-        featureidkey=FEATUREIDKEY,
-        color="stress_score",
-        color_continuous_scale=COLOR_SCALE,
-        map_style=MAP_STYLE,
-        center={"lat": 40.7, "lon": -73.95},
-        zoom=9,
-        opacity=0.75,
-        hover_name=name_col,
-        hover_data={"stress_score": ":.2f", "z_heat": ":.2f", "z_nonheat": ":.2f", "nta2020": False, "_choropleth_loc": False},
-    )
-    fig.update_layout(
-        margin={"r": 12, "t": 12, "l": 12, "b": 12},
-        coloraxis_colorbar_title="Stress Score",
-        coloraxis_colorbar_tickfont_color=TEXT_MUTED,
-        coloraxis_colorbar_title_font_color=TEXT_MUTED,
-        height=420,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font={"family": "'IBM Plex Sans', system-ui, sans-serif", "size": 11, "color": TEXT_PRIMARY},
-        xaxis=dict(showgrid=False, zeroline=False),
-        yaxis=dict(showgrid=False, zeroline=False),
-        uirevision="choropleth",
-    )
-    fig.update_traces(marker_line_width=0.5, marker_line_color=BORDER)
-    return fig
+def _chart_layout(title: str, *, height: int = 420, margin: Optional[dict] = None) -> dict:
+    return {
+        "title": {"text": title, "font": {"color": TEXT_PRIMARY, "size": 16}, "x": 0},
+        "margin": margin or {"l": 20, "r": 20, "t": 50, "b": 20},
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        "font": {"family": "system-ui, sans-serif", "color": TEXT_PRIMARY},
+        "autosize": True,
+        "height": height,
+        "uirevision": "dashboard",
+    }
 
 
 @callback(
-    Output("selected-nta", "data"),
-    Input("choropleth-map", "clickData"),
-    Input("ranking-table", "active_cell"),
-    State("ranking-table", "data"),
-    State("ranking-table", "derived_viewport_data"),
-    State("selected-nta", "data"),
+    Output("choropleth-map", "figure"),
+    Output("top-nta-bar", "figure"),
+    Output("metric-context", "children"),
+    Input("metric-toggle", "value"),
 )
-def update_selected_nta(click_data, active_cell, table_data, derived_data, current_nta):
-    ctx = __import__("dash").callback_context
-    if not ctx.triggered:
-        return current_nta
-    trigger_id = ctx.triggered[0]["prop_id"]
-    if "choropleth-map" in trigger_id and click_data:
-        loc = click_data.get("points", [{}])[0].get("location")
-        if loc:
-            return loc_to_nta.get(loc, loc)
-    if "ranking-table" in trigger_id and active_cell is not None:
-        data = derived_data if derived_data is not None else table_data
-        if data and 0 <= active_cell["row"] < len(data):
-            row = data[active_cell["row"]]
-            rank_val = row.get("rank")
-            match = df_sorted[df_sorted["rank"] == rank_val]
-            if not match.empty:
-                return match["nta2020"].iloc[0]
-    return current_nta
+def update_dashboard(metric: str):
+    baseline_mode = metric != "event"
+    color_field = "baseline_stress_score" if baseline_mode else "event_delta"
+    color_scale = "RdYlGn_r" if baseline_mode else "RdYlBu_r"
+    colorbar_title = "Baseline Stress" if baseline_mode else "Event Week Delta"
 
+    map_df = GDF.copy()
+    map_df["baseline_stress_score"] = map_df["baseline_stress_score"].round(2)
+    map_df["event_delta"] = map_df["event_delta"].round(2)
 
-@callback(
-    Output("selected-nta-label", "children"),
-    Output("ranking-table", "selected_rows"),
-    Input("selected-nta", "data"),
-)
-def update_label_and_table_selection(selected_nta):
-    if not selected_nta:
-        return "Selected: —", []
-    idx = df_sorted[df_sorted["nta2020"] == selected_nta].index
-    if len(idx) == 0:
-        return f"Selected: {selected_nta}", []
-    row_idx = int(idx[0])
-    name = df_sorted.iloc[row_idx].get(name_col, selected_nta)
-    return f"Selected: {name}", [row_idx]
-
-
-@callback(Output("drivers-chart", "figure"), Input("selected-nta", "data"))
-def update_drivers_chart(selected_nta):
-    if not selected_nta:
-        return go.Figure().add_annotation(
-            text="Select an NTA from the map or table",
-            showarrow=False,
-            font=dict(size=14, color=TEXT_MUTED),
-        ).update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=200,
-            margin=dict(t=40, b=40, l=40, r=40),
+    map_fig = px.choropleth_mapbox(
+        map_df,
+        geojson=GEOJSON,
+        locations="NTACode",
+        featureidkey="properties.NTACode",
+        color=color_field,
+        color_continuous_scale=color_scale,
+        mapbox_style="open-street-map",
+        center={"lat": 40.7128, "lon": -73.9760},
+        zoom=11,
+        opacity=0.82,
+        custom_data=[
+            "NTAName",
+            "baseline_stress_score",
+            "event_delta",
+            "baseline_rank",
+            "delta_rank",
+        ],
+    )
+    map_fig.update_traces(
+        hovertemplate=(
+            "<b>%{customdata[0]}</b><br>"
+            "Baseline stress: %{customdata[1]:.2f}<br>"
+            "Event delta: %{customdata[2]:.2f}<br>"
+            "Baseline rank: %{customdata[3]}<br>"
+            "Delta rank: %{customdata[4]}<extra></extra>"
         )
-    row = df_sorted[df_sorted["nta2020"] == selected_nta]
-    if row.empty:
-        return go.Figure().add_annotation(text="NTA not found", showarrow=False)
-    row = row.iloc[0]
-    z_heat = round(float(row["z_heat"]), 2)
-    z_nonheat = round(float(row["z_nonheat"]), 2)
-    fig = go.Figure(
-        data=[
-            go.Bar(name="z_heat", x=["Drivers"], y=[z_heat], marker_color="#f97316"),
-            go.Bar(name="z_nonheat", x=["Drivers"], y=[z_nonheat], marker_color="#0ea5e9"),
-        ]
     )
-    fig.update_layout(
-        barmode="group",
-        xaxis_title="",
-        yaxis_title="Z-Score",
-        height=220,
-        margin={"t": 20, "b": 50, "l": 50, "r": 20},
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            font=dict(size=11, color=TEXT_PRIMARY),
-            bgcolor="rgba(0,0,0,0)",
+    map_fig.update_layout(
+        **_chart_layout(
+            "NYC Neighborhood Stress Map",
+            height=520,
+            margin={"l": 0, "r": 0, "t": 40, "b": 0},
         ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font={"family": "'IBM Plex Sans', system-ui, sans-serif", "size": 11, "color": TEXT_PRIMARY},
-        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(color=TEXT_MUTED)),
-        yaxis=dict(showgrid=True, gridcolor=BORDER, zeroline=True, zerolinecolor=BORDER, tickfont=dict(color=TEXT_MUTED)),
+        coloraxis_colorbar={
+            "title": "Baseline Stress" if baseline_mode else "Event Week Delta",
+            "tickfont": {"color": TEXT_MUTED},
+        },
+        mapbox={"style": "open-street-map", "center": {"lat": 40.7128, "lon": -73.9760}, "zoom": 11},
     )
-    return fig
 
+    top_df = (
+        map_df.sort_values(color_field, ascending=False)
+        .head(10)
+        .iloc[::-1]
+        .copy()
+    )
+    bar_title = (
+        "Top 10 Neighborhoods by Baseline Stress"
+        if baseline_mode
+        else "Top 10 Neighborhoods by Event Week Delta"
+    )
+    bar_color = ACCENT_RED if baseline_mode else ACCENT_ORANGE
+    bar_fig = px.bar(
+        top_df,
+        x=color_field,
+        y="NTAName",
+        orientation="h",
+        title=bar_title,
+        color_discrete_sequence=[bar_color],
+    )
+    bar_fig.update_layout(
+        **_chart_layout(bar_title, height=320),
+        xaxis_title=colorbar_title,
+        yaxis_title="",
+        showlegend=False,
+    )
+    bar_fig.update_traces(marker_line_width=0)
 
-def main():
-    def _port_available(port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(("127.0.0.1", port)) != 0
-
-    port = int(os.environ.get("DASH_PORT", 8050))
-    while not _port_available(port) and port < 8060:
-        port += 1
-    url = f"http://127.0.0.1:{port}/"
-    print(f"\n  >>> Open in browser: {url} <<<\n")
-    app.run(debug=True, host="0.0.0.0", port=port, use_reloader=False)
+    context = BASELINE_CONTEXT if baseline_mode else EVENT_CONTEXT
+    return map_fig, bar_fig, context
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True, port=8050)
