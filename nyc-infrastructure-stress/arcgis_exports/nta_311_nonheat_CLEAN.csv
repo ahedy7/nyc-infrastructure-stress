@@ -1,0 +1,105 @@
+Join_Count,TARGET_FID,borocode,boroname,nta2020,ntaname,ntaabbrev,area_km2
+1509,1,3,Brooklyn,BK0101,Greenpoint,Grnpt,2.09
+1547,2,3,Brooklyn,BK0102,Williamsburg,Wllmsbrg,2.03
+506,3,3,Brooklyn,BK0103,South Williamsburg,SWllmsbrg,1.30
+1525,4,3,Brooklyn,BK0104,East Williamsburg,EWllmsbrg,3.12
+449,5,3,Brooklyn,BK0201,Brooklyn Heights,BkHts,1.44
+1146,6,3,Brooklyn,BK0202,Downtown Brooklyn-DUMBO-Boerum Hill,DwntwnBk,1.89
+708,7,3,Brooklyn,BK0203,Fort Greene,FtGrn,1.67
+853,8,3,Brooklyn,BK0204,Clinton Hill,ClntnHl,1.59
+19,9,3,Brooklyn,BK0261,Brooklyn Navy Yard,BkNvyYrd,1.48
+2631,10,3,Brooklyn,BK0301,Bedford-Stuyvesant (West),BdSty_W,2.15
+2868,11,3,Brooklyn,BK0302,Bedford-Stuyvesant (East),BdSty_E,2.52
+1957,12,3,Brooklyn,BK0401,Bushwick (West),Bshwck_W,2.15
+2223,13,3,Brooklyn,BK0402,Bushwick (East),Bshwck_E,2.60
+0,14,3,Brooklyn,BK0471,The Evergreens Cemetery,EvrgrnsCem,0.78
+1265,15,3,Brooklyn,BK0501,Cypress Hills,CyprssHls,1.92
+1541,16,3,Brooklyn,BK0502,East New York (North),ENY_N,2.48
+2188,17,3,Brooklyn,BK0503,East New York-New Lots,ENY_NwLts,3.15
+329,18,3,Brooklyn,BK0504,Spring Creek-Starrett City,SpCrk_StrC,0.97
+1355,19,3,Brooklyn,BK0505,East New York-City Line,ENY_CtyLn,1.95
+13,20,3,Brooklyn,BK0571,Highland Park-Cypress Hills Cemeteries (South),CyHlsCem_S,0.52
+1898,21,3,Brooklyn,BK0601,Carroll Gardens-Cobble Hill-Gowanus-Red Hook,CrrllGrdns,1.64
+1393,22,3,Brooklyn,BK0602,Park Slope,PkSlp,1.69
+701,23,3,Brooklyn,BK0701,Windsor Terrace-South Slope,WndsrTr,1.02
+1439,24,3,Brooklyn,BK0702,Sunset Park (West),SnstPk_W,1.04
+714,25,3,Brooklyn,BK0703,Sunset Park (Central),SnstPk_C,1.03
+28,26,3,Brooklyn,BK0771,Green-Wood Cemetery,GrnWdCem,0.81
+928,27,3,Brooklyn,BK0801,Prospect Heights,PrspctHts,0.68
+3412,28,3,Brooklyn,BK0802,Crown Heights (North),CrwnHts_N,1.55
+6,29,3,Brooklyn,BK0891,Lincoln Terrace Park,LclnTrPk,0.17
+1876,30,3,Brooklyn,BK0901,Crown Heights (South),CrwnHts_S,1.35
+1919,31,3,Brooklyn,BK0902,Prospect Lefferts Gardens-Wingate,PLG_Wngt,1.38
+1835,32,3,Brooklyn,BK1001,Bay Ridge,ByRdg,2.97
+679,33,3,Brooklyn,BK1002,Dyker Heights,DykrHts,1.80
+5,34,3,Brooklyn,BK1061,Fort Hamilton,FtHmltn,1.19
+16,35,3,Brooklyn,BK1091,Dyker Beach Park,DykrBchPk,0.41
+1479,36,3,Brooklyn,BK1101,Bensonhurst,Bnsnhrst,2.42
+1130,37,3,Brooklyn,BK1102,Bath Beach,BthBch,1.62
+879,38,3,Brooklyn,BK1103,Gravesend (West),Grvsnd_W,2.02
+465,39,3,Brooklyn,BK1201,Sunset Park (East)-Borough Park (West),SnstPk_E,1.05
+1557,40,3,Brooklyn,BK1202,Borough Park,BoroPk,2.05
+838,41,3,Brooklyn,BK1203,Kensington,Knsngtn,1.46
+838,42,3,Brooklyn,BK1204,Mapleton-Midwood (West),Mpltn,1.60
+370,43,3,Brooklyn,BK1301,Gravesend (South),Grvsnd_S,1.34
+869,44,3,Brooklyn,BK1302,Coney Island-Sea Gate,CnyIsl,1.57
+597,45,3,Brooklyn,BK1303,Brighton Beach,BrghtnBch,1.71
+1,46,3,Brooklyn,BK1391,Calvert Vaux Park,ClvrtVxPk,0.51
+2728,47,3,Brooklyn,BK1401,Flatbush,Fltbsh,2.39
+1032,48,3,Brooklyn,BK1402,Flatbush (West)-Ditmas Park-Parkville,Fltbsh_W,2.19
+995,49,3,Brooklyn,BK1403,Midwood,Mdwd,2.26
+951,50,3,Brooklyn,BK1501,Gravesend (East)-Homecrest,Grvsnd_E,1.89
+953,51,3,Brooklyn,BK1502,Madison,Mdsn,1.89
+1326,52,3,Brooklyn,BK1503,Sheepshead Bay-Manhattan Beach-Gerritsen Beach,ShpshdBy,2.40
+1607,53,3,Brooklyn,BK1601,Ocean Hill,OcnHl,1.62
+1560,54,3,Brooklyn,BK1602,Brownsville,Brwnsvl,1.85
+2009,55,3,Brooklyn,BK1701,East Flatbush-Erasmus,EFb_Ersms,1.58
+1037,56,3,Brooklyn,BK1702,East Flatbush-Farragut,EFb_Frrgt,1.66
+1340,57,3,Brooklyn,BK1703,East Flatbush-Rugby,EFb_Rgby,2.30
+1607,58,3,Brooklyn,BK1704,East Flatbush-Remsen Village,EFb_RmsnVl,2.65
+4,59,3,Brooklyn,BK1771,Holy Cross Cemetery,HlyCrssCem,0.67
+1762,60,3,Brooklyn,BK1801,Flatlands,Fltlnds,2.92
+1334,61,3,Brooklyn,BK1802,Marine Park-Mill Basin-Bergen Beach,MrnPk_MBsn,2.41
+1902,62,3,Brooklyn,BK1803,Canarsie,Cnrsie,3.16
+21,63,3,Brooklyn,BK1891,Marine Park-Plumb Island,MrnPk_PIsl,0.89
+10,64,3,Brooklyn,BK1892,McGuire Fields,McGrFlds,1.78
+14,65,3,Brooklyn,BK1893,Canarsie Park & Pier,CnrsiePk,0.93
+62,66,3,Brooklyn,BK5591,Prospect Park,PrspctPk,1.74
+11,67,3,Brooklyn,BK5691,Barren Island-Floyd Bennett Field,BrrnIsl,0.62
+0,68,3,Brooklyn,BK5692,Jamaica Bay (West),JmcaBy_W,0.99
+0,69,3,Brooklyn,BK5693,Shirley Chisholm State Park,ShChshlmPk,0.66
+2559,70,2,Bronx,BX0101,Mott Haven-Port Morris,MttHvn,1.85
+1724,71,2,Bronx,BX0102,Melrose,Mlrs,1.41
+1039,72,2,Bronx,BX0201,Hunts Point,HntsPt,2.69
+1791,73,2,Bronx,BX0202,Longwood,Lngwd,1.56
+0,74,2,Bronx,BX0291,North & South Brother Islands,BrthrIsls,0.37
+1784,75,2,Bronx,BX0301,Morrisania,Mrrsnia,1.58
+688,76,2,Bronx,BX0302,Claremont Village-Claremont (East),ClrmntVlg,0.62
+1659,77,2,Bronx,BX0303,Crotona Park East,CrtnaPkEst,1.19
+21,78,2,Bronx,BX0391,Crotona Park,CrtnaPk,0.84
+3490,79,2,Bronx,BX0401,Concourse-Concourse Village,Cncrs,2.51
+2481,80,2,Bronx,BX0402,Highbridge,Hghbrdg,1.13
+3176,81,2,Bronx,BX0403,Mount Eden-Claremont (West),MtEdn,1.59
+30,82,2,Bronx,BX0491,Yankee Stadium-Macombs Dam Park,YnkStdm,0.45
+39,83,2,Bronx,BX0492,Claremont Park,ClrmntPk,0.45
+3148,84,2,Bronx,BX0501,University Heights (South)-Morris Heights,UnvrsHts_S,2.27
+2915,85,2,Bronx,BX0502,Mount Hope,MtHp,1.17
+2083,86,2,Bronx,BX0503,Fordham Heights,FrdhmHts,0.88
+967,87,2,Bronx,BX0601,West Farms,WstFrms,1.58
+1926,88,2,Bronx,BX0602,Tremont,Trmnt,1.32
+2025,89,2,Bronx,BX0603,Belmont,Blmnt,1.42
+2878,90,2,Bronx,BX0701,University Heights (North)-Fordham,UnvrsHts_N,2.07
+2902,91,2,Bronx,BX0702,Bedford Park,BdfrdPk,1.49
+2077,92,2,Bronx,BX0703,Norwood,Nrwd,1.59
+1645,93,2,Bronx,BX0801,Kingsbridge Heights-Van Cortlandt Village,KngbrdgHts,1.18
+1087,94,2,Bronx,BX0802,Kingsbridge-Marble Hill,Kngbrdg,0.78
+1884,95,2,Bronx,BX0803,Riverdale-Spuyten Duyvil,Rvrdl,1.35
+2555,96,2,Bronx,BX0901,Soundview-Bruckner-Bronx River,Sdvw_BxRvr,1.84
+913,97,2,Bronx,BX0902,Soundview-Clason Point,Sdvw_ClsPt,0.66
+1008,98,2,Bronx,BX0903,Castle Hill-Unionport,CstlHl,3.03
+628,99,2,Bronx,BX0904,Parkchester,Pkchstr,0.89
+20,100,2,Bronx,BX0991,Soundview Park,SdvwPk,1.32
+641,101,2,Bronx,BX1001,Westchester Square,WstchstrSq,0.46
+1040,102,2,Bronx,BX1002,Throgs Neck-Schuylerville,ThrgsNck,0.75
+868,103,2,Bronx,BX1003,Pelham Bay-Country Club-City Island,PlhmBy,3.05
+297,104,2,Bronx,BX1004,Co-op City,CoopCty,1.81
