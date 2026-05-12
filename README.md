@@ -78,9 +78,9 @@ Run these steps from the `nyc-infrastructure-stress` directory.
 
 Live dashboard available at [RENDER URL]
 
-<img width="1712" height="480" alt="image" src="https://github.com/user-attachments/assets/4f929f54-edaa-4de2-b1be-4519e1a0e953" />
+<img width="1879" height="478" alt="image" src="https://github.com/user-attachments/assets/fe7c9f23-d1f6-4218-8e38-d2a49f29a423" />
 
-<img width="1694" height="479" alt="image" src="https://github.com/user-attachments/assets/6547b94d-52be-4ad0-bcf7-eebf00577a7d" />
+<img width="1878" height="481" alt="image" src="https://github.com/user-attachments/assets/b7fa32fe-f7ce-439b-9e5e-1f0b42cc237d" />
 
 
 ## Built By
