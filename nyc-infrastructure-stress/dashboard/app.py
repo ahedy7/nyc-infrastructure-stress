@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import os
 from typing import Optional
 
 import geopandas as gpd
@@ -11,9 +11,10 @@ import pandas as pd
 import plotly.express as px
 from dash import Dash, Input, Output, callback, dcc, html
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-STRESS_PATH = PROJECT_ROOT / "data_processed" / "nta_stress_index.csv"
-SHP_PATH = PROJECT_ROOT / "data_raw" / "nta_2020" / "geo_export.shp"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data_processed")
+STRESS_PATH = os.path.join(DATA_DIR, "nta_stress_index.csv")
+SHP_PATH = os.path.join(BASE_DIR, "data_raw", "nta_2020", "geo_export.shp")
 GITHUB_URL = "https://github.com/ahedy7/nyc-infrastructure-stress"
 
 BG_DARK = "#1a1a2e"
@@ -44,7 +45,7 @@ GRAPH_CONFIG = {"displayModeBar": False, "responsive": True}
 
 def load_merged_geodata() -> tuple[gpd.GeoDataFrame, dict]:
     stress = pd.read_csv(STRESS_PATH)
-    if not SHP_PATH.exists():
+    if not os.path.exists(SHP_PATH):
         raise FileNotFoundError(f"NTA shapefile not found at {SHP_PATH}")
 
     boundaries = gpd.read_file(SHP_PATH)
@@ -373,4 +374,4 @@ def update_dashboard(metric: str):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8050)), debug=False)
