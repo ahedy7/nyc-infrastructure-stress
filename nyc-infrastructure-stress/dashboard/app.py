@@ -245,7 +245,7 @@ app.layout = html.Div(
                 ),
                 html.P(
                     [
-                        "Built by Arvin Hedy | McGill University | 2026 | ",
+                        "Built by Arvin Hedayat | McGill University | 2026 | ",
                         html.A(
                             "GitHub",
                             href=GITHUB_URL,
