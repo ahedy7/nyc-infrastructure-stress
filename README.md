@@ -116,8 +116,12 @@ week delta views, deployed on Render.
 
 **Live dashboard: https://nyc-infrastructure-stress.onrender.com**
 
-![Baseline Stress View](nyc-infrastructure-stress/arcgis_exports/screenshot_baseline.png)
-![Event Week Delta View](nyc-infrastructure-stress/arcgis_exports/screenshot_delta.png)
+![Baseline Stress View]
+<img width="1909" height="741" alt="image" src="https://github.com/user-attachments/assets/c324431f-9b58-49f1-8964-3f24844f54a4" />
+
+![Event Week Delta View]
+<img width="1903" height="615" alt="image" src="https://github.com/user-attachments/assets/e6de6b23-e45f-455a-bffa-fedd6db71fb2" />
+
 
 ---
 
