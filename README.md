@@ -10,9 +10,7 @@ sees where to prioritize capital investment. A consultant sees
 where chronic underinvestment compounds over time. A technology 
 company building city-scale products sees a neighborhood-level 
 reliability signal for routing, demand forecasting, and urban 
-simulation models. The methodology — multi-source composite 
-indexing, anomaly detection against baseline, and compounding 
-vulnerability identification — is applicable to infrastructure 
+simulation models. The methodology is applicable to infrastructure 
 reliability analysis at any scale.
 
 ---
