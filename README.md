@@ -13,6 +13,15 @@ reliability signal for routing, demand forecasting, and urban
 simulation models. The methodology is applicable to infrastructure 
 reliability analysis at any scale.
 
+## Tools and Stack
+
+- **Python** — pandas, GeoPandas, Shapely, NumPy
+- **Spatial Analysis** — GeoPandas, Shapely (spatial joins, 
+  area calculations, CRS reprojection)
+- **Visualization** — Plotly, Plotly Dash
+- **Data Sources** — NYC Open Data (Socrata API), FEMA NFHL
+- **Deployment** — Render (gunicorn)
+- **Version Control** — Git, GitHub
 ---
 
 ## Stage 1 — Data Collection
