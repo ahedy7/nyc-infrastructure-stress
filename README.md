@@ -35,7 +35,7 @@ No single source tells the full story. The index is designed to surface
 neighborhoods where multiple systems are failing simultaneously, which 
 is what genuine infrastructure stress looks like.
 
-DOT Traffic Speeds NBE was evaluated and excluded. The dataset is a 
+DOT Traffic Speeds NBE were going to be included, but were evaluated and excluded. The dataset is a 
 real-time telemetry feed (106M rows, sub-minute updates) architecturally 
 unsuited for annual NTA-level aggregation. MTA delay density serves as 
 the primary mobility stress indicator.
@@ -44,7 +44,7 @@ the primary mobility stress indicator.
 
 ## Stage 2 — Index Construction
 
-All four features were spatially joined to NTA geography — New York 
+All four features were spatially joined to NTA geography, New York 
 City's 262 Neighborhood Tabulation Areas, the planning unit used by 
 city agencies to allocate resources and report outcomes. Each feature 
 was z-score standardized to put them on a common scale regardless of 
@@ -55,12 +55,11 @@ Equal weights were chosen because no empirical basis exists for
 differential weighting without introducing arbitrary assumptions. The 
 honest limitation is potential double counting between flood share and 
 outage density. Flooding causes outages, which means climate 
-vulnerability may carry slightly more implicit weight than its 25% 
-share suggests.
+vulnerability may carry slightly more implicit weight.
 
 The result: Fordham Heights and the South Bronx emerge as the most 
 chronically stressed neighborhoods across all four dimensions 
-simultaneously — a finding consistent with decades of documented 
+simultaneously, a finding consistent with decades of documented 
 underinvestment in those communities.
 
 | Rank | NTA | Code | Baseline Score |
@@ -83,17 +82,17 @@ events relative to their own baseline.
 
 To answer this I added an event week detection layer. Because the 
 pipeline aggregated to annual totals, I used a parametric Monte Carlo 
-bootstrap simulation — drawing 52 synthetic weekly samples from a 
-normal distribution parameterized by each NTA's annual totals — to 
+bootstrap simulation, drawing 52 synthetic weekly samples from a 
+normal distribution parameterized by each NTA's annual totals, to 
 model plausible weekly stress variance. Weeks where combined citywide 
 z-score exceeded 1.5 standard deviations were flagged as event weeks. 
 I then computed a per-NTA delta: how much more or less stressed each 
 neighborhood is during those weeks compared to its own annual baseline.
 
 The finding: dense Manhattan commercial corridors like Midtown and FiDi 
-have low chronic stress but high event deltas — low-baseline systems 
+have low chronic stress but high event deltas, low-baseline systems 
 that fail hard under pressure. Crown Heights South shows compounding 
-vulnerability — high baseline and high delta simultaneously, making it 
+vulnerability, high baseline and high delta simultaneously, making it 
 the highest priority for resilience investment.
 
 | Rank | NTA | Code | Event Delta |
