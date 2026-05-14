@@ -16,11 +16,10 @@ reliability analysis at any scale.
 ## Tools and Stack
 
 - **Python** — pandas, GeoPandas, Shapely, NumPy
-- **Spatial Analysis** — GeoPandas, Shapely (spatial joins, 
-  area calculations, CRS reprojection), ArcGIS Pro
+- **Spatial Analysis** — GeoPandas, Shapely, ArcGIS Pro
 - **Visualization** — Plotly, Plotly Dash
-- **Data Sources** — NYC Open Data (Socrata API), FEMA NFHL
-- **Deployment** — Render (gunicorn)
+- **Data Sources** — NYC Open Data, FEMA NFHL
+- **Deployment** — Render
 - **Version Control** — Git, GitHub
 ---
 
