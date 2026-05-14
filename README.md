@@ -35,7 +35,7 @@ No single source tells the full story. The index is designed to surface
 neighborhoods where multiple systems are failing simultaneously, which 
 is what genuine infrastructure stress looks like.
 
-DOT Traffic Speeds NBE were going to be included, but were evaluated and excluded. The dataset is a 
+DOT Traffic Speeds NBE was going to be included, but were evaluated and excluded. The dataset is a 
 real-time telemetry feed (106M rows, sub-minute updates) architecturally 
 unsuited for annual NTA-level aggregation. MTA delay density serves as 
 the primary mobility stress indicator.
